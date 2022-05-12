@@ -1,7 +1,7 @@
 import time
 import webbrowser as web
 from datetime import datetime
-from re import fullmatch
+from typing import Optional
 from urllib.parse import quote
 
 import pyautogui as pg
@@ -25,64 +25,76 @@ def sendwhatmsg_instantly(
     if not core.check_number(number=phone_no):
         raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
 
-    phone_no = phone_no.replace(" ", "")
-    if not fullmatch(r"^\+?[0-9]{2,4}\s?[0-9]{10}$", phone_no):
-        raise exceptions.InvalidPhoneNumber("Invalid Phone Number.")
-
     web.open(f"https://web.whatsapp.com/send?phone={phone_no}&text={quote(message)}")
     time.sleep(4)
-    pg.click(core.WIDTH / 2, core.HEIGHT / 2)
-    time.sleep(wait_time - 4)
-    core.findtextbox()
+    pg.Click(core.WIDTH / 2, 4*core.HEIGHT / 5)
+    time.sleep(wait_time)
+    pg.Click(core.WIDTH / 2, 4*core.HEIGHT / 5)
     pg.press("enter")
     log.log_message(_time=time.localtime(), receiver=phone_no, message=message)
     if tab_close:
+        pg.Click(core.WIDTH - 4, 0)#4*core.HEIGHT / 5)
         core.close_tab(wait_time=close_time)
 
 
+# def sendwhatmsg(
+#     phone_no: str,
+#     message: str,
+#     time_hour: int,
+#     time_min: int,
+#     wait_time: int = 10,
+#     tab_close: bool = True,
+#     close_time: int = 5,
+# ) -> None:
+#     """Send a WhatsApp Message at a Certain Time"""
+
+#     if not core.check_number(number=phone_no):
+#         raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
+
+#     if time_hour not in range(25) or time_min not in range(60):
+#         raise Warning("Invalid Time Format!")
+
+#     current_time = time.localtime()
+#     left_time = datetime.strptime(
+#         f"{time_hour}:{time_min}:0", "%H:%M:%S"
+#     ) - datetime.strptime(
+#         f"{current_time.tm_hour}:{current_time.tm_min}:{current_time.tm_sec}",
+#         "%H:%M:%S",
+#     )
+
+#     if left_time.seconds < wait_time:
+#         raise exceptions.CallTimeException(
+#             "Call Time must be Greater than Wait Time as WhatsApp Web takes some Time to Load!"
+#         )
+
+#     sleep_time = left_time.seconds - wait_time
+#     print(
+#         f"In {sleep_time} Seconds WhatsApp will open and after {wait_time} Seconds Message will be Delivered!"
+#     )
+#     time.sleep(sleep_time)
+#     core.send_message(message=message, receiver=phone_no, wait_time=wait_time)
+#     log.log_message(_time=current_time, receiver=phone_no, message=message)
+#     if tab_close:
+#         core.close_tab(wait_time=close_time)
+
 def sendwhatmsg(
-    phone_no: str,
+    phone_nos,
     message: str,
     time_hour: int,
     time_min: int,
-    wait_time: int = 15,
-    tab_close: bool = False,
-    close_time: int = 3,
+    wait_time: int = 5,
+    tab_close: bool = True,
+    close_time: int = 5,
 ) -> None:
     """Send a WhatsApp Message at a Certain Time"""
-    if not core.check_number(number=phone_no):
-        raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
-
-    phone_no = phone_no.replace(" ", "")
-    if not fullmatch(r"^\+?[0-9]{2,4}[0-9]{10}$", phone_no):
-        raise exceptions.InvalidPhoneNumber("Invalid Phone Number.")
-
-    if time_hour not in range(25) or time_min not in range(60):
-        raise Warning("Invalid Time Format!")
-
-    current_time = time.localtime()
-    left_time = datetime.strptime(
-        f"{time_hour}:{time_min}:0", "%H:%M:%S"
-    ) - datetime.strptime(
-        f"{current_time.tm_hour}:{current_time.tm_min}:{current_time.tm_sec}",
-        "%H:%M:%S",
-    )
-
-    if left_time.seconds < wait_time:
-        raise exceptions.CallTimeException(
-            "Call Time must be Greater than Wait Time as WhatsApp Web takes some Time to Load!"
-        )
-
-    sleep_time = left_time.seconds - wait_time
-    print(
-        f"In {sleep_time} Seconds WhatsApp will open and after {wait_time} Seconds Message will be Delivered!"
-    )
-    time.sleep(sleep_time)
-    core.send_message(message=message, receiver=phone_no, wait_time=wait_time)
-    log.log_message(_time=current_time, receiver=phone_no, message=message)
+    for phone_no in phone_nos:
+        if not core.check_number(number=phone_no):
+            raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
+        core.send_message(message=message, receiver=phone_no, wait_time=wait_time)
+        current_time = time.localtime()
+        log.log_message(_time=current_time, receiver=phone_no, message=message)
     if tab_close:
         core.close_tab(wait_time=close_time)
-
 
 def sendwhatmsg_to_group(
     group_id: str,
@@ -132,7 +144,8 @@ def sendwhatmsg_to_group_instantly(
     """Send WhatsApp Message to a Group Instantly"""
 
     current_time = time.localtime()
-    time.sleep(4)
+
+    time.sleep(sleep_time)
     core.send_message(message=message, receiver=group_id, wait_time=wait_time)
     log.log_message(_time=current_time, receiver=group_id, message=message)
     if tab_close:
@@ -142,8 +155,6 @@ def sendwhatmsg_to_group_instantly(
 def sendwhats_image(
     receiver: str,
     img_path: str,
-    time_hour: int,
-    time_min: int,
     caption: str = "",
     wait_time: int = 15,
     tab_close: bool = False,
@@ -155,23 +166,6 @@ def sendwhats_image(
         raise exceptions.CountryCodeException("Country Code Missing in Phone Number!")
 
     current_time = time.localtime()
-    left_time = datetime.strptime(
-        f"{time_hour}:{time_min}:0", "%H:%M:%S"
-    ) - datetime.strptime(
-        f"{current_time.tm_hour}:{current_time.tm_min}:{current_time.tm_sec}",
-        "%H:%M:%S",
-    )
-
-    if left_time.seconds < wait_time:
-        raise exceptions.CallTimeException(
-            "Call Time must be Greater than Wait Time as WhatsApp Web takes some Time to Load!"
-        )
-
-    sleep_time = left_time.seconds - wait_time
-    print(
-        f"In {sleep_time} Seconds WhatsApp will open and after {wait_time} Seconds Image will be Delivered!"
-    )
-    time.sleep(sleep_time)
     core.send_image(
         path=img_path, caption=caption, receiver=receiver, wait_time=wait_time
     )
